@@ -126,7 +126,14 @@ func unmarshalAttr(s *goquery.Selection, attrV reflect.Value, attrT reflect.Stru
 			return err
 		}
 	case reflect.String:
-		val := getDOMValue(s.Find(selector), htmlAttr)
+		//val := getDOMValue(s.Find(selector), htmlAttr)
+		//attrV.Set(reflect.Indirect(reflect.ValueOf(val)))
+		//support get current tag
+		//@TODO support get current tag when current is []
+		if selector != "~" {
+			s = s.Find(selector)
+		}
+		val := getDOMValue(s, htmlAttr)
 		attrV.Set(reflect.Indirect(reflect.ValueOf(val)))
 	case reflect.Struct:
 		if err := unmarshalStruct(s, selector, attrV); err != nil {
@@ -212,6 +219,16 @@ func unmarshalSlice(s *goquery.Selection, selector, htmlAttr string, attrV refle
 func getDOMValue(s *goquery.Selection, attr string) string {
 	if attr == "" {
 		return strings.TrimSpace(s.First().Text())
+	}
+
+	if attr == "innerHTML" {
+		html, _ := s.Html()
+		return strings.TrimSpace(html)
+	}
+
+	if attr == "outerHtml" {
+		html, _ := goquery.OuterHtml(s)
+		return strings.TrimSpace(html)
 	}
 	attrV, _ := s.Attr(attr)
 	return attrV
